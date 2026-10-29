@@ -1,0 +1,30 @@
+# .github/workflows/repopages.yml
+# Repository secrets (Settings > Secrets and variables > Actions):
+#   REPOPAGES_URL     https://f7879bfd-ca0b-42c0-a41b-6dbe1f1906ac.webtrigger.atlassian.app/public/TS4HIKJlA3wXtF_BDUeKbDeecB4
+#   REPOPAGES_SECRET  the secret shown once on the RepoPages settings page
+# The workflow must run in testapps2608-lgtm/Test (GITHUB_REPOSITORY names the repo in every push).
+# The action, its inputs and a workflow with a "force" input: https://github.com/repopages-app/ci
+name: RepoPages
+on:
+  push:
+    branches: [main]
+    paths: ['**/*.md', '**/*.markdown']
+  workflow_dispatch:
+    inputs:
+      full_import:
+        description: 'Send every Markdown file (unchanged pages are skipped)'
+        type: boolean
+        default: false
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2   # push mode diffs HEAD~1..HEAD
+      - uses: repopages-app/ci@v1
+        with:
+          url: ${{ secrets.REPOPAGES_URL }}
+          secret: ${{ secrets.REPOPAGES_SECRET }}
+          prefix: ''
+          mode: ${{ inputs.full_import && 'import' || 'push' }}
